@@ -1,0 +1,20 @@
+# Le contexte de build ne doit contenir que les sources.
+node_modules
+.next
+out
+build
+
+# Secrets et donnees locales : ne doivent jamais entrer dans une image.
+.env
+.env.local
+storage
+
+.git
+.gitignore
+.claude
+*.log
+.DS_Store
+tsconfig.tsbuildinfo
+README.md
+Dockerfile
+docker-compose.yml

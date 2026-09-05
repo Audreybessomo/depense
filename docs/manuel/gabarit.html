@@ -1,0 +1,856 @@
+<title>Manuel des dépenses</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+:root {
+  --encre:        #131a24;
+  --encre-douce:  #4a5763;
+  --encre-tenue:  #78838d;
+  --papier:       #f2f4f5;
+  --surface:      #ffffff;
+  --trait:        #dde2e5;
+  --trait-fort:   #c3cbd1;
+
+  --accent:       #1f6f6b;
+  --accent-clair: #e4f0ef;
+
+  --demandeur:      #2a6fb0;
+  --demandeur-fond: #e6eef7;
+  --approbateur:      #8d5c10;
+  --approbateur-fond: #f7eede;
+  --admin:      #1f6f6b;
+  --admin-fond: #e4f0ef;
+
+  --alerte:      #a3341f;
+  --alerte-fond: #f9e9e5;
+
+  --serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --sans:  "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono:  "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --encre:        #e8edf1;
+    --encre-douce:  #a3aeb8;
+    --encre-tenue:  #7c8791;
+    --papier:       #0e141a;
+    --surface:      #151d25;
+    --trait:        #26313b;
+    --trait-fort:   #38454f;
+
+    --accent:       #56b3ac;
+    --accent-clair: #14312f;
+
+    --demandeur:      #6da8e0;
+    --demandeur-fond: #14263a;
+    --approbateur:      #d3a154;
+    --approbateur-fond: #33260f;
+    --admin:      #56b3ac;
+    --admin-fond: #14312f;
+
+    --alerte:      #e18b76;
+    --alerte-fond: #351a14;
+  }
+}
+
+:root[data-theme="dark"] {
+  --encre:        #e8edf1;
+  --encre-douce:  #a3aeb8;
+  --encre-tenue:  #7c8791;
+  --papier:       #0e141a;
+  --surface:      #151d25;
+  --trait:        #26313b;
+  --trait-fort:   #38454f;
+
+  --accent:       #56b3ac;
+  --accent-clair: #14312f;
+
+  --demandeur:      #6da8e0;
+  --demandeur-fond: #14263a;
+  --approbateur:      #d3a154;
+  --approbateur-fond: #33260f;
+  --admin:      #56b3ac;
+  --admin-fond: #14312f;
+
+  --alerte:      #e18b76;
+  --alerte-fond: #351a14;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--papier);
+  color: var(--encre);
+  font-family: var(--sans);
+  font-size: 16.5px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page { max-width: 1180px; margin: 0 auto; padding: 0 24px 96px; }
+
+/* ---------- en-tête ---------- */
+.bandeau {
+  border-bottom: 1px solid var(--trait);
+  padding: 56px 0 40px;
+  display: grid;
+  gap: 28px;
+}
+.marque {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+h1 {
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(2.4rem, 5.5vw, 3.6rem);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+/* ---------- disposition ---------- */
+.corps { display: grid; gap: 56px; grid-template-columns: 1fr; }
+@media (min-width: 1000px) {
+  .corps { grid-template-columns: 216px 1fr; gap: 64px; align-items: start; }
+  .sommaire { position: sticky; top: 32px; }
+}
+.sommaire { padding-top: 48px; }
+.sommaire p {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--encre-tenue);
+  margin: 0 0 14px;
+}
+.sommaire ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.sommaire a {
+  display: block;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: var(--encre-douce);
+  text-decoration: none;
+  font-size: 14px;
+  border-left: 2px solid transparent;
+}
+.sommaire a:hover { color: var(--encre); background: var(--surface); }
+.sommaire a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sommaire .grp {
+  margin-top: 16px; padding: 0 10px 4px;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--encre-tenue);
+}
+
+.contenu { min-width: 0; padding-top: 48px; display: grid; gap: 72px; }
+
+section { scroll-margin-top: 24px; }
+h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  margin: 0 0 8px;
+  text-wrap: balance;
+}
+.sous { color: var(--encre-douce); max-width: 66ch; margin: 0 0 28px; }
+p { max-width: 68ch; }
+
+/* ---------- rôle ---------- */
+.role {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 5px 11px; border-radius: 99px;
+  margin-bottom: 14px;
+}
+.role.demandeur   { color: var(--demandeur);   background: var(--demandeur-fond); }
+.role.approbateur { color: var(--approbateur); background: var(--approbateur-fond); }
+.role.admin       { color: var(--admin);       background: var(--admin-fond); }
+.role .pastille { width: 7px; height: 7px; border-radius: 99px; background: currentColor; }
+
+/* ---------- étapes ---------- */
+.etapes { display: grid; gap: 52px; }
+.etape { display: grid; gap: 16px; }
+.etape-tete { display: flex; gap: 16px; align-items: baseline; }
+.numero {
+  font-family: var(--mono); font-weight: 600; font-size: 13px;
+  color: var(--surface); background: var(--encre);
+  min-width: 30px; height: 30px; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none; transform: translateY(3px);
+}
+.etape h3 {
+  font-family: var(--serif); font-weight: 600; font-size: 1.32rem;
+  line-height: 1.25; margin: 0; letter-spacing: -0.01em;
+}
+.etape-corps { display: grid; gap: 14px; }
+.etape-corps > * { margin: 0; }
+
+/* ---------- capture ---------- */
+figure { margin: 6px 0 0; display: grid; gap: 10px; }
+figure img {
+  display: block; width: 100%; height: auto;
+  border: 1px solid var(--trait);
+  border-radius: 8px;
+  background: var(--surface);
+}
+figcaption {
+  font-size: 13px; color: var(--encre-tenue); font-family: var(--mono);
+  display: flex; gap: 8px; align-items: baseline;
+}
+figcaption::before { content: "▸"; color: var(--accent); }
+
+/* ---------- encarts ---------- */
+.note {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-clair);
+  padding: 14px 18px; border-radius: 0 6px 6px 0;
+  font-size: 15px; max-width: 68ch;
+}
+.note.attention { border-left-color: var(--alerte); background: var(--alerte-fond); }
+.note strong { font-weight: 600; }
+.note p { margin: 0; max-width: none; }
+.note p + p { margin-top: 8px; }
+
+kbd, code {
+  font-family: var(--mono); font-size: 0.86em;
+  background: var(--surface); border: 1px solid var(--trait);
+  padding: 1px 6px; border-radius: 4px; white-space: nowrap;
+}
+
+ul.puces { padding-left: 0; list-style: none; display: grid; gap: 9px; max-width: 68ch; margin: 0; }
+ul.puces li { padding-left: 20px; position: relative; }
+ul.puces li::before {
+  content: ""; position: absolute; left: 2px; top: 0.66em;
+  width: 6px; height: 6px; border-radius: 99px; background: var(--trait-fort);
+}
+
+/* ---------- cycle de vie ---------- */
+.cycle {
+  background: var(--surface); border: 1px solid var(--trait);
+  border-radius: 10px; padding: 26px; overflow-x: auto;
+}
+.cycle svg { display: block; min-width: 660px; width: 100%; height: auto; }
+
+/* ---------- rôles en cartes ---------- */
+.trio { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .trio { grid-template-columns: repeat(3, 1fr); } }
+.fiche {
+  background: var(--surface); border: 1px solid var(--trait);
+  border-radius: 10px; padding: 20px; display: grid; gap: 10px; align-content: start;
+}
+.fiche h4 {
+  margin: 0; font-family: var(--serif); font-size: 1.08rem; font-weight: 600;
+}
+.fiche p { margin: 0; font-size: 14.5px; color: var(--encre-douce); max-width: none; }
+.fiche .barre { height: 3px; border-radius: 2px; width: 34px; }
+
+/* ---------- tableau ---------- */
+.cadre-table { overflow-x: auto; border: 1px solid var(--trait); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14.5px; }
+th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--trait); vertical-align: top; }
+thead th {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--encre-tenue); font-weight: 400;
+}
+tbody tr:last-child td { border-bottom: 0; }
+td.statut { white-space: nowrap; }
+.jeton {
+  font-family: var(--mono); font-size: 12px; padding: 2px 8px;
+  border-radius: 99px; border: 1px solid var(--trait-fort); color: var(--encre-douce);
+}
+
+
+@media print {
+  body { background: #fff; font-size: 11pt; }
+  .page { max-width: none; padding: 0; }
+
+  /* Chrome superpose les éléments d'une grille CSS coupée entre deux pages :
+     à l'impression, tout revient en flux normal avec des marges. */
+  .corps, .contenu, .etapes, .etape, .etape-corps, .trio, figure,
+  ul.puces, .fiche, .bandeau {
+    display: block !important;
+  }
+  .contenu > section { margin-bottom: 30pt; }
+  .etapes > .etape { margin-bottom: 26pt; }
+  .etape-corps > * { margin-bottom: 11pt !important; }
+  .etape-corps > *:last-child { margin-bottom: 0 !important; }
+  ul.puces > li { margin-bottom: 7pt; }
+  .trio > .fiche { margin-bottom: 10pt; }
+  .fiche > * { margin-bottom: 6pt; }
+  figure > img { margin-bottom: 7pt; }
+  .bandeau > * { margin-bottom: 12pt; }
+
+  /* Le sommaire devient la table des matières de la première page. */
+  .sommaire {
+    position: static;
+    padding: 34pt 0 0;
+    break-after: page;
+  }
+  .sommaire p { font-size: 9pt; margin-bottom: 12pt; }
+  .sommaire ol { display: block; }
+  .sommaire li { margin-bottom: 2pt; }
+  .sommaire a {
+    color: var(--encre);
+    padding: 3pt 0;
+    border-left: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 6pt;
+  }
+  .sommaire a::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px dotted var(--trait-fort);
+    transform: translateY(-3px);
+  }
+  .sommaire .grp { margin-top: 12pt; padding-left: 0; }
+
+  .contenu { padding-top: 0; }
+  section { break-inside: auto; }
+  h2, h3 { break-after: avoid; }
+  figure { break-inside: avoid; }
+  figcaption { break-before: avoid; }
+  .note, .fiche, .cadre-table, .cycle { break-inside: avoid; }
+  img { max-height: 210mm; object-fit: contain; object-position: left top; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="page">
+
+  <header class="bandeau">
+    <span class="marque">Gestion des Finances · Manuel d'utilisation</span>
+    <h1>Manuel des dépenses</h1>
+  </header>
+
+  <div class="corps">
+
+    <nav class="sommaire" aria-label="Sommaire">
+      <p>Sommaire</p>
+      <ol>
+        <li><a href="#principe">Le principe</a></li>
+        <li><a href="#connexion">Se connecter</a></li>
+        <li class="grp">Administrateur</li>
+        <li><a href="#referentiels">1 · Référentiels</a></li>
+        <li><a href="#comptes">2 · Créer les comptes</a></li>
+        <li class="grp">Demandeur</li>
+        <li><a href="#saisir">3 · Saisir une dépense</a></li>
+        <li><a href="#suivre">4 · Suivre ses dépenses</a></li>
+        <li class="grp">Approbateur</li>
+        <li><a href="#valider">5 · Valider ou refuser</a></li>
+        <li><a href="#regler">6 · Enregistrer le règlement</a></li>
+        <li class="grp">Demandeur</li>
+        <li><a href="#confirmer">7 · Confirmer la réception</a></li>
+        <li class="grp">Pilotage</li>
+        <li><a href="#piloter">Tableau de bord</a></li>
+        <li><a href="#rapports">Rapports</a></li>
+        <li><a href="#etat">État &amp; justificatifs</a></li>
+        <li><a href="#audit">Journal d'audit</a></li>
+        <li class="grp">Repères</li>
+        <li><a href="#statuts">Les statuts</a></li>
+        <li><a href="#pieges">Pièges courants</a></li>
+      </ol>
+    </nav>
+
+    <main class="contenu">
+
+      <section id="principe">
+        <h2>Le principe</h2>
+        <p class="sous">
+          Une dépense traverse toujours le même chemin. Personne ne choisit qui la valide,
+          personne ne saisit de référence de paiement : l'application s'en charge.
+        </p>
+
+        <div class="cycle">
+          <svg viewBox="0 0 700 130" role="img" aria-label="Cycle de vie : brouillon, en attente, approuvée, réglée, confirmée, avec les issues rejetée et info demandée.">
+            <defs>
+              <marker id="fl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M0 0 L10 5 L0 10 z" fill="var(--trait-fort)"/>
+              </marker>
+            </defs>
+            <g font-family="JetBrains Mono, monospace" font-size="11.5" text-anchor="middle">
+              <g>
+                <rect x="4"   y="34" width="112" height="34" rx="6" fill="var(--surface)" stroke="var(--trait-fort)"/>
+                <text x="60"  y="55.5" fill="var(--encre-douce)">Brouillon</text>
+              </g>
+              <g>
+                <rect x="148" y="34" width="112" height="34" rx="6" fill="var(--approbateur-fond)" stroke="var(--approbateur)"/>
+                <text x="204" y="55.5" fill="var(--approbateur)">En attente</text>
+              </g>
+              <g>
+                <rect x="292" y="34" width="112" height="34" rx="6" fill="var(--surface)" stroke="var(--trait-fort)"/>
+                <text x="348" y="55.5" fill="var(--encre-douce)">Approuvée</text>
+              </g>
+              <g>
+                <rect x="436" y="34" width="112" height="34" rx="6" fill="var(--surface)" stroke="var(--trait-fort)"/>
+                <text x="492" y="55.5" fill="var(--encre-douce)">Réglée</text>
+              </g>
+              <g>
+                <rect x="580" y="34" width="112" height="34" rx="6" fill="var(--admin-fond)" stroke="var(--admin)"/>
+                <text x="636" y="55.5" fill="var(--admin)">Confirmée</text>
+              </g>
+              <g stroke="var(--trait-fort)" stroke-width="1.4" marker-end="url(#fl)" fill="none">
+                <path d="M118 51 H144"/><path d="M262 51 H288"/>
+                <path d="M406 51 H432"/><path d="M550 51 H576"/>
+              </g>
+              <g>
+                <rect x="148" y="92" width="112" height="30" rx="6" fill="var(--alerte-fond)" stroke="var(--alerte)"/>
+                <text x="204" y="111.5" fill="var(--alerte)" font-size="11">Rejetée</text>
+                <path d="M204 70 V88" stroke="var(--trait-fort)" stroke-width="1.4" marker-end="url(#fl)" fill="none"/>
+              </g>
+              <g>
+                <rect x="148" y="2" width="112" height="26" rx="6" fill="var(--surface)" stroke="var(--trait-fort)"/>
+                <text x="204" y="19" fill="var(--encre-tenue)" font-size="10.5">Info demandée</text>
+                <path d="M204 32 V30" stroke="var(--trait-fort)" stroke-width="1.4" fill="none"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+
+        <div class="trio" style="margin-top:24px">
+          <div class="fiche">
+            <span class="barre" style="background:var(--demandeur)"></span>
+            <h4>Demandeur</h4>
+            <p>Engage la dépense, charge le justificatif, suit l'avancement, et confirme la réception une fois réglé.</p>
+          </div>
+          <div class="fiche">
+            <span class="barre" style="background:var(--approbateur)"></span>
+            <h4>Approbateur</h4>
+            <p>Approuve, refuse ou demande un complément. Enregistre aussi le règlement. Voit tous les rapports.</p>
+          </div>
+          <div class="fiche">
+            <span class="barre" style="background:var(--admin)"></span>
+            <h4>Administrateur</h4>
+            <p>Crée les comptes et désigne les approbateurs, tient les référentiels, consulte le journal d'audit.</p>
+          </div>
+        </div>
+
+        <div class="note" style="margin-top:24px">
+          <p><strong>Une règle à retenir.</strong> Quand plusieurs approbateurs sont désignés
+          pour une personne, ils sont prévenus <strong>tous en même temps</strong> et
+          <strong>le premier qui statue décide</strong>. Les autres voient simplement sa décision.
+          Une dépense ne reste donc jamais bloquée parce qu'une seule personne est absente.</p>
+        </div>
+      </section>
+
+      <section id="connexion">
+        <h2>Se connecter</h2>
+        <p class="sous">
+          Adresse email et mot de passe. Il n'y a pas d'inscription libre : c'est
+          l'administrateur qui crée les comptes et remet les identifiants.
+        </p>
+        <figure>
+          <img src="{{IMG:01-connexion}}" alt="Écran de connexion : champs adresse email et mot de passe.">
+          <figcaption>L'écran de connexion</figcaption>
+        </figure>
+        <div class="note">
+          <p><strong>À la première connexion</strong>, l'application impose de remplacer le
+          mot de passe reçu de l'administrateur. Tant que ce n'est pas fait, aucune page
+          n'est accessible — c'est voulu : l'administrateur ne doit pas rester détenteur
+          de votre mot de passe.</p>
+          <p>Vous pourrez le changer ensuite à tout moment par <kbd>Mon mot de passe</kbd>,
+          en bas de la barre latérale.</p>
+        </div>
+      </section>
+
+      <section id="referentiels">
+        <span class="role admin"><span class="pastille"></span>Administrateur</span>
+        <h2>Préparer les référentiels</h2>
+        <p class="sous">
+          Avant de créer les comptes, mettez en place les catégories de dépense et les
+          services. Ce sont eux qui rendront les rapports lisibles.
+        </p>
+
+        <div class="etapes">
+          <div class="etape">
+            <div class="etape-tete">
+              <span class="numero">1</span>
+              <h3>Catégories, services et devises</h3>
+            </div>
+            <div class="etape-corps">
+              <p>Menu <kbd>Administration → Référentiels</kbd>.</p>
+              <ul class="puces">
+                <li><strong>Catégories</strong> — la nature de la dépense : carburant, fournitures, télécommunications. Un compte comptable peut y être associé.</li>
+                <li><strong>Services</strong> — qui supporte la dépense, avec un centre de coût et un budget annuel facultatif.</li>
+                <li><strong>Devises</strong> — le franc CFA est la devise de référence. Pour l'euro ou le dollar, saisissez le taux : il exprime la contre-valeur d'<strong>une unité</strong> en XAF.</li>
+              </ul>
+              <figure>
+                <img src="{{IMG:03-referentiels}}" alt="Écran Référentiels : devises et taux de change, catégories, services.">
+                <figcaption>Administration → Référentiels</figcaption>
+              </figure>
+              <div class="note">
+                <p><strong>Les taux sont historisés, jamais écrasés.</strong> Chaque
+                enregistrement crée une nouvelle validité datée. Mettre un taux à jour
+                aujourd'hui ne modifie donc aucun rapport passé.</p>
+              </div>
+              <p>Un élément dont vous n'avez plus besoin se <strong>désactive</strong> plutôt
+              que de se supprimer : il disparaît des formulaires sans effacer l'historique
+              des dépenses qui l'utilisaient.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="comptes">
+        <span class="role admin"><span class="pastille"></span>Administrateur</span>
+        <h2>Créer les comptes</h2>
+        <p class="sous">
+          Chaque personne reçoit un compte, un rôle, et surtout <strong>ses approbateurs</strong> —
+          c'est ce qui déterminera où partiront ses dépenses.
+        </p>
+
+        <div class="etapes">
+          <div class="etape">
+            <div class="etape-tete">
+              <span class="numero">2</span>
+              <h3>Un compte, un rôle, ses approbateurs</h3>
+            </div>
+            <div class="etape-corps">
+              <p>Menu <kbd>Administration → Utilisateurs</kbd>, bouton <kbd>Créer un compte</kbd>.</p>
+              <figure>
+                <img src="{{IMG:05-creer-compte}}" alt="Formulaire de création de compte : nom, email, rôle, approbateurs, mot de passe provisoire.">
+                <figcaption>Le formulaire de création</figcaption>
+              </figure>
+              <ul class="puces">
+                <li><strong>Rôle</strong> — Demandeur, Approbateur ou Administrateur.</li>
+                <li><strong>Approbateurs</strong> — un obligatoire, deux facultatifs. Sans approbateur, la personne ne pourra pas soumettre de dépense.</li>
+                <li><strong>Mot de passe provisoire</strong> — déjà rempli avec un mot de passe robuste. Le bouton <kbd>Générer</kbd> en propose un autre ; vous pouvez aussi saisir le vôtre.</li>
+              </ul>
+              <div class="note">
+                <p><strong>Aucun email n'est envoyé.</strong> Après validation, l'application
+                affiche les identifiants <strong>une seule fois</strong>, avec un bouton pour
+                copier le mot de passe ou le message complet à transmettre. Le mot de passe
+                n'est stocké que sous forme d'empreinte : il ne pourra plus jamais être relu.</p>
+              </div>
+              <figure>
+                <img src="{{IMG:04-utilisateurs}}" alt="Liste des utilisateurs avec la colonne Approbateurs et les commandes de rôle et d'activation.">
+                <figcaption>La liste des comptes, avec la colonne Approbateurs</figcaption>
+              </figure>
+              <p>Depuis cette liste vous pouvez, à tout moment : changer un rôle, désactiver un
+              compte — ce qui ferme immédiatement ses sessions ouvertes —, modifier ses
+              approbateurs, ou <kbd>Réinitialiser</kbd> son mot de passe si la personne l'a perdu.</p>
+              <div class="note attention">
+                <p><strong>Un signalement à surveiller.</strong> Si un approbateur désigné n'a
+                jamais activé son compte, la colonne l'affiche en orange : il ne peut pas se
+                connecter, donc pas statuer. Désignez-en un autre, ou réinitialisez son mot
+                de passe pour l'activer.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="saisir">
+        <span class="role demandeur"><span class="pastille"></span>Demandeur</span>
+        <h2>Saisir une dépense</h2>
+        <p class="sous">
+          Le justificatif d'abord, le montant ensuite. Il n'y a personne à choisir :
+          la dépense part vers les approbateurs déjà désignés pour votre compte.
+        </p>
+
+        <div class="etapes">
+          <div class="etape">
+            <div class="etape-tete">
+              <span class="numero">3</span>
+              <h3>Charger le justificatif et soumettre</h3>
+            </div>
+            <div class="etape-corps">
+              <p>Menu <kbd>Nouvelle dépense</kbd>.</p>
+              <figure>
+                <img src="{{IMG:07-nouvelle-depense}}" alt="Formulaire de nouvelle dépense : zone de dépôt du justificatif, objet, devise, montant, catégorie.">
+                <figcaption>Nouvelle dépense — le panneau de droite montre vos approbateurs</figcaption>
+              </figure>
+              <ul class="puces">
+                <li><strong>Le justificatif</strong> — glissez la facture, le reçu ou la photo. PDF, JPEG, PNG ou WebP, 20 Mo maximum par fichier. Au moins un fichier est <strong>obligatoire</strong> pour soumettre.</li>
+                <li><strong>Objet et montant</strong> — un seul montant, sans HT ni TVA. Le total s'affiche en gros sous les champs.</li>
+                <li><strong>Catégorie, service, n° de pièce, dates</strong> — facultatifs, mais ce sont eux qui alimentent les rapports.</li>
+              </ul>
+              <p>Deux boutons : <kbd>Soumettre pour validation</kbd> envoie la dépense,
+              <kbd>Enregistrer en brouillon</kbd> la met de côté pour plus tard.</p>
+              <div class="note">
+                <p><strong>Rien n'est jamais perdu.</strong> Si la soumission échoue — un
+                justificatif manquant, aucun approbateur désigné — votre saisie et vos
+                fichiers sont quand même enregistrés. Vous arrivez sur la dépense avec le
+                motif affiché, et vous complétez sans rien resaisir.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="suivre">
+        <span class="role demandeur"><span class="pastille"></span>Demandeur</span>
+        <h2>Suivre ses dépenses</h2>
+        <p class="sous">Où en est chaque dépense, et combien reste en attente.</p>
+
+        <div class="etapes">
+          <div class="etape">
+            <div class="etape-tete">
+              <span class="numero">4</span>
+              <h3>Mes dépenses</h3>
+            </div>
+            <div class="etape-corps">
+              <p>Menu <kbd>Mes dépenses</kbd>. Quatre compteurs en haut, la liste filtrable en dessous.</p>
+              <figure>
+                <img src="{{IMG:06-mes-depenses}}" alt="Liste des dépenses du demandeur avec compteurs et filtres.">
+                <figcaption>Mes dépenses</figcaption>
+              </figure>
+              <p>Ouvrez une dépense pour voir le justificatif, le suivi de la validation
+              horodaté, et les échanges avec l'approbateur. Si celui-ci a demandé un
+              complément, répondez dans les échanges puis renvoyez la dépense.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="valider">
+        <span class="role approbateur"><span class="pastille"></span>Approbateur</span>
+        <h2>Valider ou refuser</h2>
+        <p class="sous">
+          Les plus anciennes en premier : c'est l'ordre dans lequel les traiter.
+        </p>
+
+        <div class="etapes">
+          <div class="etape">
+            <div class="etape-tete">
+              <span class="numero">5</span>
+              <h3>La file à valider, puis la décision</h3>
+            </div>
+            <div class="etape-corps">
+              <p>Menu <kbd>À valider</kbd> — le badge indique combien de dépenses attendent votre décision.</p>
+              <figure>
+                <img src="{{IMG:08-a-valider}}" alt="File des dépenses à valider avec le nombre en attente, le montant concerné et l'attente la plus longue.">
+                <figcaption>À valider</figcaption>
+              </figure>
+              <p>Ouvrez une dépense : le justificatif s'affiche à gauche, la décision se prend à droite.</p>
+              <figure>
+                <img src="{{IMG:08b-decision}}" alt="Page de détail d'une dépense avec le justificatif et le panneau de décision.">
+                <figcaption>Le panneau de décision : Approuver, Info, Rejeter</figcaption>
+              </figure>
+              <ul class="puces">
+                <li><strong>Approuver</strong> — le commentaire est facultatif.</li>
+                <li><strong>Info</strong> — renvoie la dépense au demandeur pour complément. <strong>Motif obligatoire.</strong></li>
+                <li><strong>Rejeter</strong> — clôt la dépense. <strong>Motif obligatoire.</strong></li>
+              </ul>
+              <div class="note">
+                <p>Vous ne pouvez pas statuer sur votre propre dépense, et une dépense
+                ne peut être décidée qu'une seule fois — même si deux personnes cliquent
+                exactement en même temps.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="regler">
+        <span class="role approbateur"><span class="pastille"></span>Approbateur</span>
+        <h2>Enregistrer le règlement</h2>
+        <p class="sous">Un bouton, rien à saisir.</p>
+
+        <div class="etapes">
+          <div class="etape">
+            <div class="etape-tete">
+              <span class="numero">6</span>
+              <h3>Marquer une dépense réglée</h3>
+            </div>
+            <div class="etape-corps">
+              <p>Menu <kbd>À régler</kbd> : les dépenses approuvées en attente de paiement, triées par échéance.</p>
+              <figure>
+                <img src="{{IMG:14-a-regler}}" alt="File de règlement avec les montants à régler et les dépenses en attente de confirmation.">
+                <figcaption>À régler</figcaption>
+              </figure>
+              <p>Ouvrez la dépense et cliquez <kbd>Marquer comme réglée</kbd>.</p>
+              <figure>
+                <img src="{{IMG:13-reglement}}" alt="Panneau de règlement : la date et la référence sont générées automatiquement.">
+                <figcaption>Le panneau de règlement</figcaption>
+              </figure>
+              <div class="note">
+                <p><strong>La date et la référence sont automatiques.</strong> La date est celle
+                du jour, la référence suit une séquence annuelle — <code>REG-2026-00031</code> —
+                garantie unique en base. Aucune saisie, donc aucune faute de frappe et aucun
+                doublon possible.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="confirmer">
+        <span class="role demandeur"><span class="pastille"></span>Demandeur</span>
+        <h2>Confirmer la réception</h2>
+        <p class="sous">
+          Le règlement ne clôt pas la dépense. Il reste à rapporter les pièces définitives.
+        </p>
+
+        <div class="etapes">
+          <div class="etape">
+            <div class="etape-tete">
+              <span class="numero">7</span>
+              <h3>Joindre les pièces définitives et laisser un message</h3>
+            </div>
+            <div class="etape-corps">
+              <p>Vous recevez un email <em>« Réglée — merci de confirmer et de joindre vos
+              justificatifs »</em>. Sur la page de la dépense, un panneau vous demande deux
+              choses, toutes deux obligatoires.</p>
+              <figure>
+                <img src="{{IMG:15-confirmation}}" alt="Panneau de confirmation de réception avec dépôt de pièces et champ message.">
+                <figcaption>Confirmez la réception</figcaption>
+              </figure>
+              <ul class="puces">
+                <li>Les <strong>factures ou reçus définitifs</strong> — au moins un fichier.</li>
+                <li>Un <strong>message</strong> — ce que couvrent les pièces jointes.</li>
+              </ul>
+              <p>La dépense passe alors en <strong>Confirmée</strong>. Celui qui a réglé, celui
+              qui a validé et les administrateurs en sont informés.</p>
+              <div class="note attention">
+                <p>Tant que la confirmation n'est pas faite, la dépense reste
+                <strong>« Réglée, à confirmer »</strong> et apparaît comme telle dans l'état
+                de la période. C'est volontaire : une sortie de caisse sans pièce définitive
+                doit se voir.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="piloter">
+        <span class="role admin"><span class="pastille"></span>Administrateur &amp; approbateur</span>
+        <h2>Le tableau de bord</h2>
+        <p class="sous">La vue d'ensemble de l'année, tous montants convertis en XAF.</p>
+        <figure>
+          <img src="{{IMG:02-tableau-de-bord}}" alt="Tableau de bord : indicateurs approuvé, réglé, en attente, délai médian, taux de rejet, et graphique d'évolution mensuelle.">
+          <figcaption>Tableau de bord</figcaption>
+        </figure>
+        <p>Le graphique d'évolution distingue quatre états qui ne se recouvrent pas :
+        <strong>réglé</strong>, <strong>approuvé non réglé</strong>, <strong>en attente</strong>
+        et <strong>rejeté</strong>. Leur somme fait le montant soumis. Le lien
+        <kbd>Voir le tableau</kbd> affiche les mêmes chiffres sous forme de tableau.</p>
+        <figure>
+          <img src="{{IMG:09-toutes-les-depenses}}" alt="Registre complet des dépenses avec recherche, filtres et boutons d'export.">
+          <figcaption>Toutes les dépenses — recherche, filtres, export CSV et Excel</figcaption>
+        </figure>
+      </section>
+
+      <section id="rapports">
+        <h2>Les rapports</h2>
+        <p class="sous">
+          Par jour, mois, trimestre, année ou plage libre — avec comparaison à la même
+          période l'an dernier.
+        </p>
+        <figure>
+          <img src="{{IMG:10-rapports}}" alt="Écran Rapports : sélecteur de période, indicateurs avec variation, graphique d'évolution.">
+          <figcaption>Rapports</figcaption>
+        </figure>
+        <ul class="puces">
+          <li><strong>Indicateurs</strong> — montants soumis, approuvés, réglés, reste à valider, taux de rejet, délai médian de décision, ticket moyen.</li>
+          <li><strong>Répartitions</strong> — par catégorie, par service, par demandeur.</li>
+          <li><strong>Tableau croisé</strong> service × mois, en carte de chaleur.</li>
+          <li><strong>Performance des approbateurs</strong> — délai médian, en-cours.</li>
+        </ul>
+        <p>Pour un PDF, utilisez l'impression du navigateur (<kbd>Cmd</kbd> ou <kbd>Ctrl</kbd> + <kbd>P</kbd>) :
+        la mise en page masque la navigation et les contrôles.</p>
+      </section>
+
+      <section id="etat">
+        <h2>L'état de fin de période</h2>
+        <p class="sous">
+          Le livrable : l'état des dépenses <strong>accompagné de toutes les preuves</strong>,
+          dans un seul dossier à remettre au comptable ou à l'auditeur.
+        </p>
+        <figure>
+          <img src="{{IMG:11-etat-justificatifs}}" alt="Écran État et justificatifs : période, contenu de l'état, boutons de téléchargement, aperçu ligne par ligne.">
+          <figcaption>État &amp; justificatifs</figcaption>
+        </figure>
+        <p>Choisissez la période, puis ce que l'état retient : les dépenses
+        <strong>approuvées</strong> (payées ou non), uniquement les <strong>payées</strong>,
+        ou <strong>tout</strong> y compris les rejets. Trois sorties :</p>
+        <ul class="puces">
+          <li><strong>Dossier complet (ZIP)</strong> — l'état Excel et chaque justificatif, renommé d'après la référence de sa dépense.</li>
+          <li><strong>État seul (Excel)</strong> — mis en forme, filtre automatique, ligne de totaux.</li>
+          <li><strong>État seul (CSV)</strong> — s'ouvre directement dans Excel.</li>
+        </ul>
+        <div class="cadre-table" style="margin-top:6px">
+          <table>
+            <thead><tr><th>Dans le ZIP</th><th>Contenu</th></tr></thead>
+            <tbody>
+              <tr><td><code>Etat des depenses …xlsx</code></td><td>Une ligne par dépense, avec la colonne <em>Justificatifs</em> qui nomme les fichiers</td></tr>
+              <tr><td><code>Justificatifs/</code></td><td>Les pièces jointes à la demande</td></tr>
+              <tr><td><code>Pieces apres reglement/</code></td><td>Celles rapportées à la confirmation</td></tr>
+              <tr><td><code>PIECES-MANQUANTES.txt</code></td><td>Les dépenses sans preuve exploitable, s'il y en a</td></tr>
+              <tr><td><code>CONFIRMATIONS-EN-ATTENTE.txt</code></td><td>Les dépenses réglées non encore confirmées</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note" style="margin-top:20px">
+          <p><strong>Un dossier dit toujours la vérité sur ce qu'il contient.</strong> Une
+          dépense sans justificatif apparaît en rouge dans l'Excel et dans un fichier à part ;
+          une dépense réglée non confirmée apparaît en orange. Rien n'est masqué.</p>
+        </div>
+      </section>
+
+      <section id="audit">
+        <span class="role admin"><span class="pastille"></span>Administrateur</span>
+        <h2>Le journal d'audit</h2>
+        <p class="sous">
+          Qui a fait quoi, quand, depuis quelle adresse. En ajout seul : aucune entrée
+          n'est modifiée ni supprimée par l'application.
+        </p>
+        <figure>
+          <img src="{{IMG:12-journal-audit}}" alt="Journal d'audit : horodatage, acteur, action, objet, détail.">
+          <figcaption>Administration → Journal d'audit</figcaption>
+        </figure>
+        <p>Connexions, créations, décisions, règlements, réinitialisations de mot de passe,
+        exports : tout y figure, filtrable par type d'action.</p>
+      </section>
+
+      <section id="statuts">
+        <h2>Les statuts</h2>
+        <p class="sous">Ce que chaque état signifie, et qui doit agir.</p>
+        <div class="cadre-table">
+          <table>
+            <thead><tr><th>Statut</th><th>Signification</th><th>Qui doit agir</th></tr></thead>
+            <tbody>
+              <tr><td class="statut"><span class="jeton">Brouillon</span></td><td>Saisie commencée, pas encore envoyée</td><td>Le demandeur</td></tr>
+              <tr><td class="statut"><span class="jeton">En attente</span></td><td>Envoyée, en attente de décision</td><td>Les approbateurs désignés</td></tr>
+              <tr><td class="statut"><span class="jeton">Info demandée</span></td><td>Un complément est réclamé</td><td>Le demandeur</td></tr>
+              <tr><td class="statut"><span class="jeton">Approuvée</span></td><td>Validée, pas encore payée</td><td>Un approbateur, pour le règlement</td></tr>
+              <tr><td class="statut"><span class="jeton">Réglée, à confirmer</span></td><td>Payée, pièces définitives attendues</td><td>Le demandeur</td></tr>
+              <tr><td class="statut"><span class="jeton">Confirmée</span></td><td>Cycle terminé, dossier complet</td><td>Personne</td></tr>
+              <tr><td class="statut"><span class="jeton">Rejetée</span></td><td>Refusée, avec motif</td><td>Personne</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="pieges">
+        <h2>Pièges courants</h2>
+        <p class="sous">Les quelques situations qui surprennent, et leur explication.</p>
+        <div class="cadre-table">
+          <table>
+            <thead><tr><th style="width:38%">Ce que vous constatez</th><th>Pourquoi, et quoi faire</th></tr></thead>
+            <tbody>
+              <tr><td>« Aucun approbateur n'est assigné à votre compte »</td><td>Personne n'a été désigné pour valider vos dépenses. Un administrateur doit le faire depuis <em>Utilisateurs</em>.</td></tr>
+              <tr><td>Une dépense n'apparaît pas dans ma file</td><td>Vous n'êtes pas parmi les approbateurs désignés de son auteur. Vous pouvez la consulter, mais pas statuer.</td></tr>
+              <tr><td>Un approbateur signalé en orange</td><td>Il n'a jamais activé son compte : il ne peut pas se connecter. Réinitialisez son mot de passe, ou désignez quelqu'un d'autre.</td></tr>
+              <tr><td>Je ne peux pas valider ma propre dépense</td><td>C'est une règle de séparation des pouvoirs, appliquée côté serveur. Faites-la valider par quelqu'un d'autre.</td></tr>
+              <tr><td>Mon mot de passe ne passe pas</td><td>Au moins 10 caractères, avec une lettre et un chiffre. En cas d'oubli, un administrateur le réinitialise.</td></tr>
+              <tr><td>Le fichier est refusé</td><td>Seuls PDF, JPEG, PNG et WebP sont acceptés, 20 Mo maximum. Le contenu réel est vérifié, pas seulement l'extension.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>

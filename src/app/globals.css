@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --color-marque-50:  #eef2ff;
+  --color-marque-100: #e0e7ff;
+  --color-marque-500: #6366f1;
+  --color-marque-600: #4f46e5;
+  --color-marque-700: #4338ca;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+:root {
+  --fond: #f8fafc;
+  --surface: #ffffff;
+  --bordure: #e2e8f0;
+  --texte: #0f172a;
+  --texte-doux: #64748b;
+
+  /* Palette de visualisation (validee : bande de clarte, separation CVD,
+     plancher vision normale — cf. README section Rapports). */
+  --viz-regle:    #2a78d6;
+  --viz-approuve: #008300;
+  --viz-attente:  #eda100;
+  --viz-rejete:   #e34948;
+  --viz-serie:    #2a78d6;
+  --viz-grille:   #e1e0d9;
+  --viz-axe:      #898781;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fond: #0b1120;
+    --surface: #111827;
+    --bordure: #1f2937;
+    --texte: #e5e7eb;
+    --texte-doux: #94a3b8;
+
+    --viz-regle:   #3987e5;
+    --viz-attente: #c98500;
+    --viz-serie:   #3987e5;
+    --viz-grille:  #2c2c2a;
+  }
+}
+
+html, body {
+  background: var(--fond);
+  color: var(--texte);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.surface { background: var(--surface); border-color: var(--bordure); }
+.doux { color: var(--texte-doux); }
+
+/* Impression des rapports : on ne garde que le contenu. */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+}

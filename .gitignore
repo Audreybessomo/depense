@@ -1,0 +1,28 @@
+# Dépendances et build
+node_modules/
+.next/
+out/
+build/
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# Secrets et configuration locale — .env.example en tient lieu de modèle
+.env
+.env.local
+.env.*.local
+
+# Données de l'instance : justificatifs déposés par les utilisateurs
+storage/
+storage-manuel/
+
+# Sauvegardes de base : contiennent des données réelles et des empreintes
+# de mots de passe, elles n'ont rien à faire dans un dépôt
+sauvegardes/
+
+# Manuel : le gabarit et les captures optimisées suffisent à tout regénérer
+docs/manuel/manuel-depenses.html
+docs/manuel/captures/
+
+# Système
+.DS_Store
+*.log

@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gdf
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-moi}
+      POSTGRES_DB: gestion_finances
+    volumes:
+      # PostgreSQL 18 range ses donnees dans un sous-repertoire versionne de
+      # /var/lib/postgresql : monter /var/lib/postgresql/data (convention
+      # <= 17) fait demarrer le conteneur sur un volume qu'il ignore.
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gdf -d gestion_finances"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://gdf:${POSTGRES_PASSWORD:-change-moi}@db:5432/gestion_finances?schema=public
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      APP_NAME: ${APP_NAME:-Gestion des Finances}
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET est obligatoire}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      STORAGE_LOCAL_DIR: /app/storage
+      MAIL_DRIVER: ${MAIL_DRIVER:-console}
+      MAIL_FROM: ${MAIL_FROM:-Gestion des Finances <no-reply@exemple.com>}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      BASE_CURRENCY: ${BASE_CURRENCY:-XAF}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-20}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      - files:/app/storage
+
+volumes:
+  db-data:
+  files:

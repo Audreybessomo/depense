@@ -1,0 +1,423 @@
+// Schema de la gestion des demandes de paiement / factures.
+// Multi-devises : chaque demande porte sa devise + le taux applique au moment
+// de la soumission, et un montant converti dans la devise de reference
+// (fige) pour que les rapports restent stables dans le temps.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+/// DEMANDEUR : cree et suit ses depenses.
+/// APPROBATEUR : approuve, rejette et marque paye ce qui lui est assigne.
+/// ADMIN : tout, plus la gestion des comptes et des referentiels.
+enum Role {
+  DEMANDEUR
+  APPROBATEUR
+  ADMIN
+}
+
+enum RequestStatus {
+  BROUILLON
+  EN_ATTENTE
+  INFO_DEMANDEE
+  APPROUVEE
+  REJETEE
+  /// Reglee, mais le demandeur n'a pas encore rapporte ses justificatifs
+  PAYEE
+  /// Le demandeur a confirme la reception et depose les pieces definitives
+  CONFIRMEE
+  ANNULEE
+}
+
+/// Distingue la piece jointe a l'appui de la demande de celles rapportees
+/// apres le reglement : ce sont deux moments de preuve differents.
+enum AttachmentNature {
+  DEMANDE
+  CONFIRMATION
+}
+
+enum StepStatus {
+  /// Niveau superieur pas encore atteint : le tour de cet approbateur viendra
+  /// quand le niveau precedent aura approuve.
+  A_VENIR
+  EN_ATTENTE
+  APPROUVEE
+  REJETEE
+  INFO_DEMANDEE
+  /// Sans objet : la depense a ete rejetee ou annulee avant ce niveau.
+  IGNOREE
+}
+
+enum ScanStatus {
+  EN_ATTENTE
+  PROPRE
+  INFECTE
+  ERREUR
+}
+
+enum NotificationType {
+  DEMANDE_A_VALIDER
+  DEMANDE_APPROUVEE
+  DEMANDE_REJETEE
+  INFO_DEMANDEE
+  DEMANDE_RESOUMISE
+  DEMANDE_PAYEE
+  CONFIRMATION_ATTENDUE
+  DEMANDE_CONFIRMEE
+  RELANCE
+}
+
+// ---------------------------------------------------------------------------
+// Identite & acces
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  nom          String
+  passwordHash String?
+  /// Vrai tant que l'utilisateur n'a pas remplace le mot de passe initial
+  /// attribue par l'administrateur : il y est force a la connexion suivante.
+  doitChangerMotDePasse Boolean @default(false)
+  role         Role      @default(DEMANDEUR)
+  actif        Boolean   @default(true)
+  telephone    String?
+  departmentId String?
+  managerId    String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  department  Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  manager     User?       @relation("Hierarchie", fields: [managerId], references: [id], onDelete: SetNull)
+  subordonnes User[]      @relation("Hierarchie")
+
+  demandes      ExpenseRequest[] @relation("Demandeur")
+  etapes        ApprovalStep[]   @relation("Approbateur")
+
+  /// Circuit de validation attribue par l'administrateur : qui valide les
+  /// depenses de cette personne, et dans quel ordre.
+  circuit       ApproverAssignment[] @relation("CircuitDuDemandeur")
+  /// Personnes dont cet utilisateur est approbateur.
+  approuvePour  ApproverAssignment[] @relation("CircuitApprobateur")
+  commentaires  Comment[]
+  notifications Notification[]
+  sessions      Session[]
+  loginTokens   LoginToken[]
+  auditLogs     AuditLog[]
+  attachments   Attachment[]     @relation("Uploader")
+  paiements     ExpenseRequest[] @relation("MarquePayePar")
+
+  @@index([departmentId])
+  @@index([role, actif])
+  @@map("users")
+}
+
+model Session {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  ip        String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// Jeton a usage unique pour la connexion par lien email (magic link)
+/// et pour la definition du premier mot de passe.
+model LoginToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  purpose   String    @default("MAGIC_LINK")
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("login_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Referentiels
+// ---------------------------------------------------------------------------
+
+model Department {
+  id            String   @id @default(cuid())
+  nom           String   @unique
+  costCenter    String?
+  budgetAnnuel  Decimal? @db.Decimal(18, 2)
+  actif         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  users    User[]
+  demandes ExpenseRequest[]
+
+  @@map("departments")
+}
+
+model Category {
+  id             String   @id @default(cuid())
+  nom            String   @unique
+  compteComptable String?
+  actif          Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  demandes ExpenseRequest[]
+
+  @@map("categories")
+}
+
+model Currency {
+  code     String  @id @db.VarChar(3)
+  nom      String
+  symbole  String
+  decimals Int     @default(2)
+  actif    Boolean @default(true)
+
+  taux     ExchangeRate[]
+  demandes ExpenseRequest[]
+
+  @@map("currencies")
+}
+
+/// Taux de change vers la devise de reference (BASE_CURRENCY).
+/// 1 unite de `currencyCode` = `taux` unites de la devise de reference.
+model ExchangeRate {
+  id           String   @id @default(cuid())
+  currencyCode String   @db.VarChar(3)
+  taux         Decimal  @db.Decimal(20, 8)
+  validFrom    DateTime
+  createdAt    DateTime @default(now())
+
+  currency Currency @relation(fields: [currencyCode], references: [code], onDelete: Cascade)
+
+  @@unique([currencyCode, validFrom])
+  @@index([currencyCode, validFrom])
+  @@map("exchange_rates")
+}
+
+// ---------------------------------------------------------------------------
+// Demandes
+// ---------------------------------------------------------------------------
+
+model ExpenseRequest {
+  id     String @id @default(cuid())
+  numero String @unique
+
+  demandeurId  String
+  departmentId String?
+  categoryId   String?
+
+  objet       String
+  description String?
+
+  devise  String  @db.VarChar(3)
+  montant Decimal @db.Decimal(18, 2)
+
+  /// Taux fige lors de la soumission (1 devise = tauxChange BASE_CURRENCY)
+  tauxChange  Decimal @default(1) @db.Decimal(20, 8)
+  /// Montant converti dans la devise de reference, fige
+  montantBase Decimal @default(0) @db.Decimal(18, 2)
+  deviseBase  String  @default("XAF") @db.VarChar(3)
+
+  /// Reference portee par la piece justificative (recu, facture, bordereau)
+  numeroPiece  String?
+  datePiece    DateTime?
+  dateEcheance DateTime?
+
+  statut        RequestStatus @default(BROUILLON)
+  niveauCourant Int           @default(0)
+
+  submittedAt DateTime?
+  decidedAt   DateTime?
+  paidAt      DateTime?
+  /// Reference de reglement generee par l'application : REG-2026-00042.
+  /// Unique en base — deux paiements ne peuvent pas porter le meme numero.
+  paymentRef  String?   @unique
+  paidById    String?
+
+  /// Confirmation de reception par le demandeur, apres le reglement
+  confirmedAt   DateTime?
+  confirmationNote String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  demandeur  User        @relation("Demandeur", fields: [demandeurId], references: [id])
+  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  category   Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  currency   Currency    @relation(fields: [devise], references: [code])
+  paidBy     User?       @relation("MarquePayePar", fields: [paidById], references: [id], onDelete: SetNull)
+
+  attachments   Attachment[]
+  etapes        ApprovalStep[]
+  commentaires  Comment[]
+  notifications Notification[]
+
+  @@index([demandeurId, statut])
+  @@index([statut, submittedAt])
+  @@index([departmentId])
+  @@index([categoryId])
+  @@index([datePiece])
+  @@index([submittedAt])
+  @@map("expense_requests")
+}
+
+model Attachment {
+  id           String           @id @default(cuid())
+  requestId    String
+  filename     String
+  mimeType     String
+  taille       Int
+  storageKey   String
+  sha256       String
+  nature       AttachmentNature @default(DEMANDE)
+  scanStatus   ScanStatus       @default(EN_ATTENTE)
+  uploadedById String
+  createdAt    DateTime         @default(now())
+
+  request    ExpenseRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  uploadedBy User           @relation("Uploader", fields: [uploadedById], references: [id])
+
+  @@index([requestId, nature])
+  @@index([sha256])
+  @@map("attachments")
+}
+
+/// Circuit d'approbation materialise. En V1 une seule etape est creee,
+/// mais la structure supporte deja le multi-niveaux (ordre 1, 2, 3...).
+model ApprovalStep {
+  id          String     @id @default(cuid())
+  requestId   String
+  ordre       Int
+  approverId  String
+  statut      StepStatus @default(EN_ATTENTE)
+  commentaire String?
+  decidedAt   DateTime?
+  relanceAt   DateTime?
+  createdAt   DateTime   @default(now())
+
+  request  ExpenseRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  approver User           @relation("Approbateur", fields: [approverId], references: [id])
+
+  @@unique([requestId, ordre])
+  @@index([approverId, statut])
+  @@map("approval_steps")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  requestId String
+  userId    String
+  corps     String
+  interne   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  request ExpenseRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id])
+
+  @@index([requestId])
+  @@map("comments")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  requestId String?
+  type      NotificationType
+  titre     String
+  corps     String
+  luAt      DateTime?
+  sentAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  request ExpenseRequest? @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([userId, luAt])
+  @@map("notifications")
+}
+
+/// Journal d'audit : ajout seul, jamais modifie ni supprime par l'application.
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String
+  diff      Json?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId])
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model AppSetting {
+  cle       String   @id
+  valeur    String
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
+}
+
+/// Circuit de validation d'une personne, defini par l'administrateur a la
+/// creation du compte. Le demandeur ne choisit pas qui le valide : ses
+/// depenses partent automatiquement vers `ordre = 1`, puis `2`, etc.
+model ApproverAssignment {
+  id         String   @id @default(cuid())
+  userId     String
+  approverId String
+  ordre      Int
+  createdAt  DateTime @default(now())
+
+  user     User @relation("CircuitDuDemandeur", fields: [userId], references: [id], onDelete: Cascade)
+  approver User @relation("CircuitApprobateur", fields: [approverId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, ordre])
+  @@unique([userId, approverId])
+  @@index([approverId])
+  @@map("approver_assignments")
+}
+
+/// Sequence de numerotation des demandes, par annee : DEM-2026-00042
+model Counter {
+  annee    Int @id
+  dernier  Int @default(0)
+
+  @@map("counters")
+}
+
+/// Sequence de numerotation des reglements, par annee : REG-2026-00042.
+/// Distincte de celle des demandes : une demande peut etre creee sans jamais
+/// etre reglee, les deux compteurs n'avancent donc pas au meme rythme.
+model PaymentCounter {
+  annee   Int @id
+  dernier Int @default(0)
+
+  @@map("payment_counters")
+}
