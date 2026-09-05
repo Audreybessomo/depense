@@ -27,7 +27,7 @@ services:
       DATABASE_URL: postgresql://gdf:${POSTGRES_PASSWORD:-change-moi}@db:5432/gestion_finances?schema=public
       APP_URL: ${APP_URL:-http://localhost:3000}
       APP_NAME: ${APP_NAME:-Gestion des Finances}
-      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET est obligatoire}
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET est obligatoire — lancez ./demarrer.sh}
       STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
       STORAGE_LOCAL_DIR: /app/storage
       MAIL_DRIVER: ${MAIL_DRIVER:-console}
@@ -39,6 +39,9 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       BASE_CURRENCY: ${BASE_CURRENCY:-XAF}
       MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-20}
+      # Identité du compte créé au tout premier démarrage
+      ADMIN_NOM: ${ADMIN_NOM:-Administrateur}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@local}
     ports:
       - "${APP_PORT:-3000}:3000"
     volumes:

@@ -39,6 +39,7 @@ RUN mkdir -p /app/storage && chown -R nextjs:nodejs /app/storage /app/.next
 USER nextjs
 EXPOSE 3000
 
-# Les migrations sont appliquées au démarrage : un déploiement ne peut pas
-# partir avec un schéma en retard sur le code.
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]
+# Au démarrage : migrations, puis amorçage du premier administrateur s'il
+# n'en existe aucun, puis l'application. Un déploiement ne peut donc pas
+# partir avec un schéma en retard, ni rester inaccessible faute de compte.
+CMD ["sh", "-c", "npx prisma migrate deploy && npx tsx scripts/premier-demarrage.ts && npm run start"]

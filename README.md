@@ -422,14 +422,35 @@ Avant une mise en production, prévoyez en plus :
 
 L'application est agnostique. Deux chemins prêts à l'emploi :
 
-**Docker Compose** (VPS, serveur interne) :
+**Docker Compose** — une seule commande, base de données comprise :
 
 ```bash
-export AUTH_SECRET="$(openssl rand -base64 48)"
-export POSTGRES_PASSWORD="…"
-export APP_URL="https://finances.mon-entreprise.com"
-docker compose up -d --build
+./demarrer.sh
 ```
+
+Au premier lancement, le script génère les secrets dans `.env.docker`, construit
+l'image, démarre PostgreSQL, applique les migrations, crée le compte
+administrateur et **affiche ses identifiants**. Aux lancements suivants il
+redémarre simplement, sans rien recréer.
+
+```
+L'application tourne sur http://localhost:8080
+
+  PREMIER DÉMARRAGE — compte administrateur créé
+  Connexion    : http://localhost:8080/login
+  Adresse      : admin@local
+  Mot de passe : WHmXQT2NgP3L9b
+```
+
+Le port par défaut est **8080**, pour ne pas gêner un serveur de développement
+sur 3000. Adresse de l'administrateur, port, devise et SMTP se règlent dans
+`.env.docker`, généré au premier lancement et **jamais versionné**.
+
+| | |
+|---|---|
+| Arrêter | `docker compose --env-file .env.docker down` |
+| Journaux | `docker compose --env-file .env.docker logs -f app` |
+| Tout effacer | `docker compose --env-file .env.docker down -v` |
 
 Deux services : `db` (PostgreSQL, avec *healthcheck* — l'application n'est lancée
 que lorsque la base répond vraiment) et `app`. Deux volumes persistants : `db-data`
@@ -453,7 +474,8 @@ par les migrations au démarrage**, application accessible, connexion fonctionne
 > n'est alors jamais lancée. Le `docker-compose.yml` monte donc
 > `db-data:/var/lib/postgresql`.
 
-Créez ensuite le premier administrateur dans le conteneur :
+Si vous préférez piloter Compose vous-même, le premier administrateur se crée aussi
+à la main dans le conteneur :
 
 ```bash
 docker compose exec app npx tsx scripts/creer-admin.ts "Nom Prénom" admin@entreprise.com
