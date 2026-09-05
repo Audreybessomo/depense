@@ -497,6 +497,67 @@ Si vous préférez piloter Compose vous-même, le premier administrateur se cré
 docker compose exec app npx tsx scripts/creer-admin.ts "Nom Prénom" admin@entreprise.com
 ```
 
+### Sur un serveur de test
+
+Prérequis sur la machine : **Docker** avec le plugin Compose, et **git**.
+
+```bash
+git clone https://github.com/Audreybessomo/depense.git
+cd depense
+```
+
+Créez un fichier `.env` à côté du `docker-compose.yml` avec l'adresse réelle du
+serveur :
+
+```bash
+PUBLIC_URL=http://192.168.1.50:8080
+POSTGRES_PASSWORD=un-mot-de-passe-solide
+ADMIN_EMAIL=direction@mon-entreprise.com
+ADMIN_NOM=Direction
+```
+
+Puis la commande unique :
+
+```bash
+docker compose up -d --build
+docker compose logs app | grep -A 6 "PREMIER DÉMARRAGE"
+```
+
+La seconde ligne affiche l'adresse et le mot de passe de l'administrateur.
+
+**`PUBLIC_URL` doit être exactement l'adresse que les utilisateurs tapent.** Elle
+sert aux liens contenus dans les emails, et elle détermine aussi la sécurité du
+cookie de session : en `https://` le cookie est marqué `Secure`, en `http://` il ne
+l'est pas — sans quoi le navigateur le rejetterait et la connexion échouerait sans
+message. Le jour où vous passerez derrière un certificat, il suffira de changer
+`PUBLIC_URL` en `https://…` et de relancer.
+
+N'oubliez pas d'ouvrir le port dans le pare-feu :
+
+```bash
+sudo ufw allow 8080/tcp
+```
+
+**Mettre à jour** le serveur après une évolution :
+
+```bash
+git pull && docker compose up -d --build
+```
+
+Les migrations s'appliquent au démarrage, les données et les justificatifs sont dans
+des volumes Docker et survivent à la reconstruction.
+
+**Sauvegarder** avant une manipulation risquée :
+
+```bash
+docker compose exec -T db pg_dump -U gdf gestion_finances > sauvegarde.sql
+docker run --rm -v gestion-desfinances_files:/f -v "$PWD":/s alpine \
+  tar czf /s/justificatifs.tgz -C /f .
+```
+
+La base seule ne suffit pas : les justificatifs vivent dans le volume `files`, il faut
+sauvegarder les deux.
+
 **Plateforme managée** (Vercel, Railway, Render) : renseignez les mêmes variables,
 utilisez un PostgreSQL managé et `STORAGE_DRIVER=s3` — un système de fichiers
 éphémère ne convient pas aux justificatifs.

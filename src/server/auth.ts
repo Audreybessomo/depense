@@ -49,7 +49,10 @@ export async function creerSession(userId: string) {
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    // On se cale sur l'adresse reellement servie, pas sur NODE_ENV : un
+    // cookie « secure » est ignore par le navigateur en http://, et la
+    // connexion echouerait sans le moindre message sur un serveur de test.
+    secure: env.APP_URL.startsWith("https://"),
     sameSite: "lax",
     path: "/",
     expires: expiresAt,
