@@ -1,3 +1,9 @@
+# Tout a une valeur par defaut : « docker compose up » suffit a demarrer
+# l'ensemble. En production, surchargez au moins POSTGRES_PASSWORD et PUBLIC_URL.
+#
+# Les variables portent un nom distinct de celles du .env de developpement,
+# que Compose lit automatiquement : sans cela, APP_URL=http://localhost:3000
+# du poste de dev ecraserait silencieusement l'adresse du conteneur.
 services:
   db:
     image: postgres:18-alpine
@@ -25,9 +31,8 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://gdf:${POSTGRES_PASSWORD:-change-moi}@db:5432/gestion_finances?schema=public
-      APP_URL: ${APP_URL:-http://localhost:3000}
+      APP_URL: ${PUBLIC_URL:-http://localhost:8080}
       APP_NAME: ${APP_NAME:-Gestion des Finances}
-      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET est obligatoire — lancez ./demarrer.sh}
       STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
       STORAGE_LOCAL_DIR: /app/storage
       MAIL_DRIVER: ${MAIL_DRIVER:-console}
@@ -43,7 +48,7 @@ services:
       ADMIN_NOM: ${ADMIN_NOM:-Administrateur}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@local}
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${PUBLIC_PORT:-8080}:3000"
     volumes:
       - files:/app/storage
 

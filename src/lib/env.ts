@@ -4,7 +4,6 @@ const schema = z.object({
   DATABASE_URL: z.string().min(1),
   APP_URL: z.string().url().default("http://localhost:3000"),
   APP_NAME: z.string().default("Gestion des Finances"),
-  AUTH_SECRET: z.string().min(32, "AUTH_SECRET doit faire au moins 32 caracteres"),
   SESSION_TTL_DAYS: z.coerce.number().int().positive().default(7),
 
   STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),

@@ -15,10 +15,9 @@ RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-# Les vraies valeurs viennent de l'environnement d'exécution ; celles-ci ne
-# servent qu'à satisfaire la validation de config pendant la compilation.
+# La vraie valeur vient de l'environnement d'exécution ; celle-ci ne sert
+# qu'à satisfaire la validation de config pendant la compilation.
 ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
-ENV AUTH_SECRET="build-time-placeholder-secret-au-moins-32-caracteres"
 RUN npm run build
 
 # --- Exécution --------------------------------------------------------------

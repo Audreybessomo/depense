@@ -27,5 +27,3 @@ docs/manuel/captures/
 .DS_Store
 *.log
 
-# Secrets Docker générés localement
-.env.docker

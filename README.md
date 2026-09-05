@@ -34,7 +34,7 @@ Prérequis : **Node 20+** et **PostgreSQL 14+**.
 
 ```bash
 npm install
-cp .env.example .env          # puis ajustez DATABASE_URL et AUTH_SECRET
+cp .env.example .env          # puis ajustez DATABASE_URL
 createdb gestion_finances
 npx prisma migrate dev
 npm run db:seed               # jeu de démonstration (facultatif)
@@ -42,12 +42,6 @@ npm run dev
 ```
 
 L'application est sur <http://localhost:3000>.
-
-Générer un `AUTH_SECRET` solide :
-
-```bash
-openssl rand -base64 48
-```
 
 En développement, `MAIL_DRIVER=console` : les emails ne partent pas, ils
 s'affichent dans la console du serveur — pratique pour récupérer un lien de
@@ -375,7 +369,6 @@ Tout passe par des variables d'environnement (12-factor) — voir `.env.example`
 |---|---|
 | `DATABASE_URL` | chaîne PostgreSQL |
 | `APP_URL` | URL publique, utilisée dans les liens des emails |
-| `AUTH_SECRET` | secret de session (48 octets aléatoires) |
 | `SESSION_TTL_DAYS` | durée de vie d'une session (7 par défaut) |
 | `STORAGE_DRIVER` | `local` (disque / volume) ou `s3` |
 | `S3_*` | endpoint, région, bucket, clés — compatible S3, MinIO, Scaleway, R2 |
@@ -425,32 +418,55 @@ L'application est agnostique. Deux chemins prêts à l'emploi :
 **Docker Compose** — une seule commande, base de données comprise :
 
 ```bash
-./demarrer.sh
+docker compose up --build
 ```
 
-Au premier lancement, le script génère les secrets dans `.env.docker`, construit
-l'image, démarre PostgreSQL, applique les migrations, crée le compte
-administrateur et **affiche ses identifiants**. Aux lancements suivants il
-redémarre simplement, sans rien recréer.
+Aucune variable à définir au préalable : tout a une valeur par défaut. La commande
+construit l'image, démarre PostgreSQL, attend qu'il soit sain, applique les
+migrations, crée le compte administrateur et **affiche ses identifiants dans le
+terminal** :
 
 ```
-L'application tourne sur http://localhost:8080
-
   PREMIER DÉMARRAGE — compte administrateur créé
+
   Connexion    : http://localhost:8080/login
   Adresse      : admin@local
   Mot de passe : WHmXQT2NgP3L9b
 ```
 
-Le port par défaut est **8080**, pour ne pas gêner un serveur de développement
-sur 3000. Adresse de l'administrateur, port, devise et SMTP se règlent dans
-`.env.docker`, généré au premier lancement et **jamais versionné**.
+L'application écoute sur **http://localhost:8080** — le port 3000 reste libre pour un
+serveur de développement. Ajoutez `-d` pour rendre la main ; les identifiants se
+relisent alors avec :
+
+```bash
+docker compose logs app | grep -A 6 "PREMIER DÉMARRAGE"
+```
+
+Un redémarrage ne recrée jamais le compte : l'amorçage se contente de constater
+qu'un administrateur existe déjà.
 
 | | |
 |---|---|
-| Arrêter | `docker compose --env-file .env.docker down` |
-| Journaux | `docker compose --env-file .env.docker logs -f app` |
-| Tout effacer | `docker compose --env-file .env.docker down -v` |
+| Arrêter | `docker compose down` |
+| Journaux | `docker compose logs -f app` |
+| Tout effacer | `docker compose down -v` |
+
+**En production**, surchargez au minimum le mot de passe de la base et l'adresse
+publique — par variables d'environnement ou dans un fichier `.env` à côté du
+`docker-compose.yml` :
+
+```bash
+POSTGRES_PASSWORD=un-mot-de-passe-solide
+PUBLIC_URL=https://finances.mon-entreprise.com
+PUBLIC_PORT=8080
+ADMIN_EMAIL=direction@mon-entreprise.com
+MAIL_DRIVER=smtp
+```
+
+> Les variables Docker s'appellent `PUBLIC_URL` et `PUBLIC_PORT`, et non `APP_URL`
+> et `APP_PORT` : Compose lit automatiquement le `.env` du projet — celui du serveur
+> de développement — et `APP_URL=http://localhost:3000` y écraserait silencieusement
+> l'adresse du conteneur.
 
 Deux services : `db` (PostgreSQL, avec *healthcheck* — l'application n'est lancée
 que lorsque la base répond vraiment) et `app`. Deux volumes persistants : `db-data`
