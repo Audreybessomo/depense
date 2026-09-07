@@ -1,0 +1,3 @@
+Ce fichier ne sert qu'a faire exister le dossier dans git, qui ignore les
+repertoires vides. Sans lui, un clone frais n'a pas de public/ et la ligne
+« COPY --from=builder /app/public » du Dockerfile echoue.
