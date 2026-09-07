@@ -47,9 +47,10 @@ export default async function PageConnexion({
           </p>
           <ul className="mt-8 space-y-4 text-sm text-slate-300">
             {[
-              ["Dépôt", "Le demandeur charge son justificatif et l'assigne à un approbateur."],
-              ["Validation", "L'approbateur ouvre la pièce dans son espace et statue."],
-              ["Pilotage", "La direction suit les montants approuvés, par période."],
+              ["Dépôt", "Le demandeur charge son justificatif et soumet sa dépense."],
+              ["Validation", "Ses approbateurs, désignés par l'administrateur, sont saisis en même temps : la première décision tranche."],
+              ["Règlement", "Le paiement est enregistré avec sa référence, puis le demandeur confirme et joint les pièces définitives."],
+              ["Pilotage", "La direction édite l'état d'une période, justificatifs compris."],
             ].map(([titre, texte], i) => (
               <li key={titre} className="flex gap-3">
                 <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-white">
