@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { connexion, type EtatLogin } from "./actions";
 import { Alerte, Champ, Label } from "@/components/ui/primitives";
+import { ChampMotDePasse } from "@/components/ui/mot-de-passe";
 import { BoutonSoumettre } from "@/components/ui/soumission";
 
 export function FormulaireConnexion({ messageInitial }: { messageInitial?: string }) {
@@ -20,8 +21,8 @@ export function FormulaireConnexion({ messageInitial }: { messageInitial?: strin
       </div>
       <div>
         <Label htmlFor="motDePasse">Mot de passe</Label>
-        <Champ id="motDePasse" name="motDePasse" type="password"
-               autoComplete="current-password" required placeholder="••••••••" />
+        <ChampMotDePasse id="motDePasse" name="motDePasse" required
+                         autoComplete="current-password" placeholder="••••••••" />
       </div>
 
       <BoutonSoumettre className="w-full">Me connecter</BoutonSoumettre>

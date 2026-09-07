@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import { definirMotDePasse, type EtatMdp } from "./actions";
-import { Alerte, Champ, Label } from "@/components/ui/primitives";
+import { Alerte, Label } from "@/components/ui/primitives";
+import { ChampMotDePasse } from "@/components/ui/mot-de-passe";
 import { BoutonSoumettre } from "@/components/ui/soumission";
 
 export function FormulaireMotDePasse({ token }: { token: string }) {
@@ -22,13 +23,13 @@ export function FormulaireMotDePasse({ token }: { token: string }) {
       {etat.erreur ? <Alerte type="erreur">{etat.erreur}</Alerte> : null}
       <div>
         <Label htmlFor="motDePasse">Nouveau mot de passe</Label>
-        <Champ id="motDePasse" name="motDePasse" type="password" required
-               autoComplete="new-password" minLength={10} />
+        <ChampMotDePasse id="motDePasse" name="motDePasse" required
+                         autoComplete="new-password" minLength={10} />
       </div>
       <div>
         <Label htmlFor="confirmation">Confirmation</Label>
-        <Champ id="confirmation" name="confirmation" type="password" required
-               autoComplete="new-password" minLength={10} />
+        <ChampMotDePasse id="confirmation" name="confirmation" required
+                         autoComplete="new-password" minLength={10} />
       </div>
       <BoutonSoumettre className="w-full">Enregistrer et me connecter</BoutonSoumettre>
     </form>

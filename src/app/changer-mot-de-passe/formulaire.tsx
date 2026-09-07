@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { changerMotDePasse, type EtatChangement } from "./actions";
-import { Alerte, Champ, Label } from "@/components/ui/primitives";
+import { Alerte, Label } from "@/components/ui/primitives";
+import { ChampMotDePasse } from "@/components/ui/mot-de-passe";
 import { BoutonSoumettre } from "@/components/ui/soumission";
 import { LONGUEUR_MINIMALE } from "@/lib/mot-de-passe";
 
@@ -18,17 +19,17 @@ export function FormulaireChangement({ obligatoire }: { obligatoire: boolean }) 
         <Label htmlFor="actuel">
           {obligatoire ? "Mot de passe reçu de l'administrateur" : "Mot de passe actuel"}
         </Label>
-        <Champ id="actuel" name="actuel" type="password" required autoComplete="current-password" />
+        <ChampMotDePasse id="actuel" name="actuel" required autoComplete="current-password" />
       </div>
       <div>
         <Label htmlFor="nouveau">Nouveau mot de passe</Label>
-        <Champ id="nouveau" name="nouveau" type="password" required
-               autoComplete="new-password" minLength={LONGUEUR_MINIMALE} />
+        <ChampMotDePasse id="nouveau" name="nouveau" required
+                         autoComplete="new-password" minLength={LONGUEUR_MINIMALE} />
       </div>
       <div>
         <Label htmlFor="confirmation">Confirmation</Label>
-        <Champ id="confirmation" name="confirmation" type="password" required
-               autoComplete="new-password" minLength={LONGUEUR_MINIMALE} />
+        <ChampMotDePasse id="confirmation" name="confirmation" required
+                         autoComplete="new-password" minLength={LONGUEUR_MINIMALE} />
       </div>
 
       <BoutonSoumettre className="w-full">Enregistrer</BoutonSoumettre>
