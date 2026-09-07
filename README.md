@@ -61,6 +61,7 @@ connexion sans serveur SMTP.
 | `npx tsx scripts/lien-connexion.ts <email>` | fabrique un lien de connexion sans email |
 | `npx tsx scripts/test-double-approbation.ts` | vérifie qu'une demande ne peut être approuvée qu'une fois |
 | `npx tsx scripts/test-reference-reglement.ts` | vérifie qu'une référence de règlement ne peut jamais être dupliquée |
+| `npm run relances` | envoie les relances en attente (le service `taches` le fait chaque jour) |
 
 ## Comptes de démonstration
 
@@ -152,6 +153,37 @@ vers l'administrateur. L'écran d'administration signale aussi en orange un appr
 
 La liste se modifie à tout moment ; le changement est tracé (`CIRCUIT_MODIFIE`) et ne
 touche pas les dépenses déjà en cours.
+
+### Les relances
+
+Une dépense oubliée dans une file n'alerte personne — c'est le défaut classique de
+ce genre de circuit. Trois rappels automatiques y remédient :
+
+| Quand | Qui reçoit | Quoi |
+|---|---|---|
+| **J+3** sans décision | les approbateurs désignés | *« en attente de votre décision depuis 4 jours »* |
+| **J+7** sans décision | les administrateurs | *« bloquée depuis 9 jours, en attente de Marc Etoundi »* |
+| **J+5** après règlement | le demandeur | *« vos justificatifs définitifs sont attendus »* |
+
+Chaque envoi horodate ce qu'il vient de relancer — `approval_steps.relanceAt` et
+`expense_requests.relanceConfirmationAt`. Le compteur repart donc de la date du
+dernier rappel : une exécution quotidienne ne renvoie pas le même message tous les
+jours, et un second passage immédiat n'envoie rien.
+
+Les seuils se règlent par variables d'environnement : `RELANCE_JOURS` (3),
+`ESCALADE_JOURS` (7), `RELANCE_CONFIRMATION_JOURS` (5).
+
+Le service `taches` du `docker-compose.yml` exécute le traitement une fois par jour
+— `RELANCE_INTERVALLE_HEURES` pour changer la cadence. À la main :
+
+```bash
+npm run relances
+```
+
+> Les scripts qui appellent le code métier tournent avec
+> `NODE_OPTIONS=--conditions=react-server` : le paquet `server-only`, qui protège
+> les modules serveur, refuse de se charger hors de ce contexte. C'est déjà câblé
+> dans le script npm et dans Compose.
 
 ### Le règlement
 
@@ -587,6 +619,7 @@ src/
     auth.ts               sessions, mots de passe, jetons à usage unique
     requests.ts           circuit : création, soumission, décision, règlement
     circuit.ts            approbateurs attachés au compte
+    relances.ts           rappels aux approbateurs et aux demandeurs
     currency.ts           taux de change et conversion figée
     reports.ts            agrégats et séries temporelles
     export.ts             CSV, Excel et dossier ZIP des justificatifs
@@ -618,8 +651,6 @@ Le socle a été conçu pour les accueillir sans refonte :
   suffit toujours. Exiger deux accords successifs au-delà d'un certain montant demande
   un moteur de règles et son écran d'administration ; la table `approval_steps` porte
   déjà un champ `ordre` prévu pour ça.
-- **Relances automatiques** (J+2, J+5) et **escalade** — le champ
-  `approval_steps.relanceAt` attend une tâche planifiée.
 - **Délégation** pendant les absences — `approval_steps.delegatedFromId` est en place.
 - **Double authentification** (TOTP) — `users.mfaSecret` est prévu au schéma.
 - **Analyse antivirus** des pièces jointes (voir Sécurité).

@@ -52,6 +52,42 @@ services:
     volumes:
       - files:/app/storage
 
+  # Relances quotidiennes : rappels aux approbateurs qui n'ont pas statué,
+  # escalade vers les administrateurs, et rappels aux demandeurs qui n'ont pas
+  # rapporté leurs justificatifs. Un simple appel par jour suffit — inutile
+  # d'installer un démon de planification.
+  taches:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://gdf:${POSTGRES_PASSWORD:-change-moi}@db:5432/gestion_finances?schema=public
+      APP_URL: ${PUBLIC_URL:-http://localhost:8080}
+      APP_NAME: ${APP_NAME:-Gestion des Finances}
+      MAIL_DRIVER: ${MAIL_DRIVER:-console}
+      MAIL_FROM: ${MAIL_FROM:-Gestion des Finances <no-reply@exemple.com>}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      BASE_CURRENCY: ${BASE_CURRENCY:-XAF}
+      RELANCE_JOURS: ${RELANCE_JOURS:-3}
+      ESCALADE_JOURS: ${ESCALADE_JOURS:-7}
+      RELANCE_CONFIRMATION_JOURS: ${RELANCE_CONFIRMATION_JOURS:-5}
+    # --conditions=react-server : le paquet « server-only » refuse de se charger
+    # hors de ce contexte, et tout le code métier en dépend.
+    command:
+      - sh
+      - -c
+      - >
+        while true; do
+        NODE_OPTIONS=--conditions=react-server npx tsx scripts/relances.ts || echo "[relances] passage en echec, on reessaiera";
+        sleep ${RELANCE_INTERVALLE_HEURES:-24}h;
+        done
+
 volumes:
   db-data:
   files:

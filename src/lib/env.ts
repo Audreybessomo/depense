@@ -25,6 +25,11 @@ const schema = z.object({
 
   BASE_CURRENCY: z.string().length(3).default("XAF"),
   MAX_UPLOAD_MB: z.coerce.number().int().positive().default(20),
+
+  // Relances : nombre de jours d'inaction avant chaque rappel.
+  RELANCE_JOURS: z.coerce.number().int().positive().default(3),
+  ESCALADE_JOURS: z.coerce.number().int().positive().default(7),
+  RELANCE_CONFIRMATION_JOURS: z.coerce.number().int().positive().default(5),
 });
 
 const parsed = schema.safeParse(process.env);

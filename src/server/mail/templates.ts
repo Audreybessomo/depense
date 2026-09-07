@@ -201,3 +201,84 @@ export function mailBienvenue(p: { nom: string; url: string; role: string }) {
     text: `Compte créé (${p.role}). Définissez votre mot de passe : ${p.url}`,
   };
 }
+
+export function mailRelanceApprobateur(p: {
+  approbateur: string; demandeur: string; numero: string; objet: string;
+  montant: string; jours: number; url: string;
+}) {
+  return {
+    subject: `[${p.numero}] Toujours en attente de votre décision — ${p.jours} jours`,
+    html: gabarit({
+      titre: "Une dépense attend toujours votre décision",
+      intro:
+        `Bonjour ${p.approbateur}, la dépense de <strong>${p.demandeur}</strong> attend ` +
+        `votre validation depuis <strong>${p.jours} jours</strong>.`,
+      lignes: [["Référence", p.numero], ["Objet", p.objet], ["Montant", p.montant]],
+      encart:
+        "Si vous n'êtes pas la bonne personne pour statuer, signalez-le à un " +
+        "administrateur : il peut changer les approbateurs de ce collaborateur.",
+      bouton: { label: "Traiter maintenant", url: p.url },
+    }),
+    text: texte([
+      `${p.numero} attend votre décision depuis ${p.jours} jours.`,
+      `${p.demandeur} — ${p.objet} — ${p.montant}`,
+      p.url,
+    ]),
+  };
+}
+
+export function mailEscalade(p: {
+  destinataire: string; numero: string; objet: string; montant: string;
+  jours: number; approbateurs: string; url: string;
+}) {
+  return {
+    subject: `[${p.numero}] Bloquée depuis ${p.jours} jours`,
+    html: gabarit({
+      titre: "Une dépense reste bloquée",
+      intro:
+        `Bonjour ${p.destinataire}, cette dépense attend une décision depuis ` +
+        `<strong>${p.jours} jours</strong> malgré les rappels envoyés.`,
+      lignes: [
+        ["Référence", p.numero],
+        ["Objet", p.objet],
+        ["Montant", p.montant],
+        ["En attente de", p.approbateurs],
+      ],
+      encart:
+        "Vous pouvez trancher vous-même, ou désigner d'autres approbateurs pour " +
+        "ce collaborateur depuis Administration → Utilisateurs.",
+      bouton: { label: "Voir la dépense", url: p.url },
+    }),
+    text: texte([
+      `${p.numero} bloquée depuis ${p.jours} jours, en attente de ${p.approbateurs}.`,
+      `${p.objet} — ${p.montant}`,
+      p.url,
+    ]),
+  };
+}
+
+export function mailRelanceConfirmation(p: {
+  demandeur: string; numero: string; objet: string; montant: string;
+  jours: number; url: string;
+}) {
+  return {
+    subject: `[${p.numero}] Vos justificatifs définitifs sont attendus`,
+    html: gabarit({
+      titre: "Il manque vos justificatifs",
+      intro:
+        `Bonjour ${p.demandeur}, cette dépense a été réglée il y a ` +
+        `<strong>${p.jours} jours</strong>, mais vous n'avez pas encore confirmé la ` +
+        `réception ni joint vos pièces définitives.`,
+      lignes: [["Référence", p.numero], ["Objet", p.objet], ["Montant", p.montant]],
+      encart:
+        "Tant que ce n'est pas fait, la dépense apparaît comme une sortie de caisse " +
+        "sans pièce justificative dans l'état de la période.",
+      bouton: { label: "Confirmer et joindre mes pièces", url: p.url },
+    }),
+    text: texte([
+      `${p.numero} réglée il y a ${p.jours} jours — vos justificatifs sont attendus.`,
+      `${p.objet} — ${p.montant}`,
+      p.url,
+    ]),
+  };
+}

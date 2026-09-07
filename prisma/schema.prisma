@@ -258,6 +258,8 @@ model ExpenseRequest {
   /// Confirmation de reception par le demandeur, apres le reglement
   confirmedAt   DateTime?
   confirmationNote String?
+  /// Derniere relance envoyee au demandeur pour qu'il confirme sa reception
+  relanceConfirmationAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
