@@ -33,8 +33,20 @@ async function regler(requestId: string) {
   });
 }
 
+/** Crée des comptes jetables : le test ne doit dépendre d'aucune donnée existante. */
+async function comptesJetables(prisma: PrismaClient) {
+  const marque = `test-${Date.now()}`;
+  const demandeur = await prisma.user.create({
+    data: { nom: "Demandeur de test", email: `${marque}-d@test.local`, role: "DEMANDEUR" },
+  });
+  const approbateur = await prisma.user.create({
+    data: { nom: "Approbateur de test", email: `${marque}-a@test.local`, role: "APPROBATEUR" },
+  });
+  return { demandeur, approbateur };
+}
+
 async function main() {
-  const demandeur = await prisma.user.findFirstOrThrow({ where: { role: "DEMANDEUR" } });
+  const { demandeur, approbateur } = await comptesJetables(prisma);
   const devise = await prisma.currency.findFirstOrThrow({ where: { actif: true } });
 
   const depenses = await Promise.all(
@@ -77,6 +89,7 @@ async function main() {
   console.log(succes ? "\n✅ Aucune redondance." : "\n❌ ÉCHEC : références dupliquées.");
 
   await prisma.expenseRequest.deleteMany({ where: { id: { in: depenses.map((d) => d.id) } } });
+  await prisma.user.deleteMany({ where: { id: { in: [demandeur.id, approbateur.id] } } });
   await prisma.$disconnect();
   process.exit(succes ? 0 : 1);
 }

@@ -34,9 +34,20 @@ async function approuver(requestId: string, etapeId: string, etiquette: string) 
   }
 }
 
+/** Crée des comptes jetables : le test ne doit dépendre d'aucune donnée existante. */
+async function comptesJetables(prisma: PrismaClient) {
+  const marque = `test-${Date.now()}`;
+  const demandeur = await prisma.user.create({
+    data: { nom: "Demandeur de test", email: `${marque}-d@test.local`, role: "DEMANDEUR" },
+  });
+  const approbateur = await prisma.user.create({
+    data: { nom: "Approbateur de test", email: `${marque}-a@test.local`, role: "APPROBATEUR" },
+  });
+  return { demandeur, approbateur };
+}
+
 async function main() {
-  const demandeur = await prisma.user.findFirstOrThrow({ where: { role: "DEMANDEUR" } });
-  const valideur = await prisma.user.findFirstOrThrow({ where: { role: "APPROBATEUR" } });
+  const { demandeur, approbateur: valideur } = await comptesJetables(prisma);
   const devise = await prisma.currency.findFirstOrThrow({ where: { actif: true } });
 
   const demande = await prisma.expenseRequest.create({
@@ -82,6 +93,7 @@ async function main() {
   console.log(succes ? "\n✅ Invariant respecté." : "\n❌ ÉCHEC : double approbation possible.");
 
   await prisma.expenseRequest.delete({ where: { id: demande.id } });
+  await prisma.user.deleteMany({ where: { id: { in: [demandeur.id, valideur.id] } } });
   await prisma.$disconnect();
   process.exit(succes ? 0 : 1);
 }
